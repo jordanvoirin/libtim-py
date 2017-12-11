@@ -181,8 +181,8 @@ def calc_zern_basis(nmodes, rad, modestart=1, calc_covmat=False):
 
 	grid_mask = grid_rad <= 1
 
-	# Build list of Zernike modes, these are *not* masked/cropped
-	zern_modes = [zernikel(zmode, grid_rad, grid_ang) for zmode in xrange(modestart, nmodes+modestart)]
+	# Build list of Zernike modes, these are masked
+	zern_modes = [zernikel(zmode, grid_rad*grid_mask, grid_ang*grid_mask)* for zmode in xrange(modestart, nmodes+modestart)]
 
 	# Convert modes to (nmodes, npixels) matrix
 	zern_modes_mat = np.r_[zern_modes].reshape(nmodes, -1)
@@ -353,4 +353,3 @@ def calc_zernike(zern_vec, rad, zern_data={}, mask=True):
 
 	# Reconstruct the wavefront by summing modes
 	return reduce(lambda x,y: x+y[1]*zern_basis[y[0]] * gridmask, enumerate(zern_vec), 0)
-

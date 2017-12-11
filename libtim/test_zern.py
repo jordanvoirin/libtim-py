@@ -11,7 +11,7 @@
 Testcases for zern.py library.
 """
 
-from zern import *
+from libtim.zern import *
 import unittest
 import libtim.im
 import pylab as plt
@@ -19,7 +19,7 @@ import pyfits
 from timeit import Timer
 import os
 
-SHOWPLOTS=False
+SHOWPLOTS=True
 
 class PlotZernikes(unittest.TestCase):
 	def test0a_masking(self):
@@ -43,7 +43,7 @@ class PlotZernikes(unittest.TestCase):
 			mode = calc_zernike(vec, rad, mask=True)
 			nn, mm = noll_to_zern(idx+1)
 			tim.im.inter_imshow(mode, desc="Zernike mode j=%d (n=%d, m=%d) " % (n+1, nn, mm))
-		
+
 class StoreZernikes(unittest.TestCase):
 	def setUp(self):
 		"""Generate source image, darkfield, flatfield and simulated data"""
@@ -65,11 +65,11 @@ class StoreZernikes(unittest.TestCase):
 		# Store as one big FITS file
 		outf = os.path.join(self.outdir, 'zernike-basis.fits')
 		pyfits.writeto(outf, np.r_[self.basis], clobber=True)
-		
+
 		# Plot each mode
 		for n, basis in enumerate(self.basis):
 			nn, mm = noll_to_zern(n+1)
-			libtim.im.store_2ddata(basis, 'zernike-basis_%02d' % (n+1), 
+			libtim.im.store_2ddata(basis, 'zernike-basis_%02d' % (n+1),
 				dir=self.outdir, pltitle='Zernike mode j=%d, (n=%d, m=%d) ' % (n+1, nn, mm), xlab='X', ylab='Y', ident=False)
 
 class TestZernikes(unittest.TestCase):
@@ -220,26 +220,26 @@ class TestZernikes(unittest.TestCase):
 		"""Test weighed Zernike reconstruction"""
 		this_wf = self.wf_msk.copy()
 		this_weight = self.wf_msk.copy()*0+1
-		
+
 		# Set region in center to random values, and set weight to 0
 		this_wf[this_wf.shape[0]*2/3:] = 2*this_wf.max()
 		this_weight[this_wf.shape[0]*2/3:] = 0
-		
+
 		# Now fit and plot
 		fitvecw, fitrecw, fitdiffw = fit_zernike(this_wf, fitweight=this_weight, nmodes=self.nmodes)
 		fitvec, fitrec, fitdiff = fit_zernike(this_wf, nmodes=self.nmodes)
-		
-		# When fitting the corrupted wavefront, the residual with the original 
+
+		# When fitting the corrupted wavefront, the residual with the original
 		# wavefront should be much bigger than with the corrupted wavefront
 		fitw_orig = np.abs(fitrecw - self.wf_msk).mean()
 		fit_orig = np.abs(fitrec - self.wf_msk).mean()
 		fitw_corr = np.abs(fitrecw - this_wf).mean()
 		fit_corr = np.abs(fitrec - this_wf).mean()
-		
+
 		self.assertGreater(fit_orig/1.2, fit_corr)
 		self.assertGreater(fitw_corr/10., fitw_orig)
 		self.assertGreater(fitrec.max()/1.5, fitrecw.max())
-		
+
 		if (SHOWPLOTS):
 			tim.im.inter_imshow(self.wf_msk, desc="Input data")
 			tim.im.inter_imshow(this_wf, desc="Corrupted input data")
